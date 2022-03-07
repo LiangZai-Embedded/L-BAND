@@ -1,5 +1,7 @@
 # I-RING V1.0  
-### 演示视频 https://www.bilibili.com/video/BV1Ca411h7yj?spm_id_from=333.999.0.0
+### 演示视频 https://www.bilibili.com/video/BV1Ca411h7yj?spm_id_from=333.999.0.0  
+
+2022-03-07 更新蜂鸣器封装，修改布线
 
 ## 硬件  
 
@@ -20,4 +22,4 @@
 
 ### 后续实现低功耗，测温，气压显示 To Be Continued~~  
 
-2022-03-07 更新蜂鸣器封装，修改布线
+
