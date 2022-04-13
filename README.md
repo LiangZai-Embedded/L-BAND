@@ -1,6 +1,6 @@
 # I-RING V1.0  
 ### 演示视频 https://www.bilibili.com/video/BV1Ca411h7yj?spm_id_from=333.999.0.0  
-
+  
 2022-03-07 更新蜂鸣器封装，修改布线
 
 ## 硬件  
