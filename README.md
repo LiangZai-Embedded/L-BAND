@@ -1,7 +1,7 @@
 # I-RING V1.0  
 ### 演示视频 https://www.bilibili.com/video/BV1Ca411h7yj?spm_id_from=333.999.0.0  
 
-2022-04-13 1：使用库STM32Cube_FW_F0_V1.11.0 ->ST官网下载  
+2022-04-13  1：使用库STM32Cube_FW_F0_V1.11.0 ->ST官网下载  
            2：删除进入app需 要shake的多余动作  
            3：更改命名 eula->euler  
            4：app函数取消指针类型参数 app_xxx(Data* data)->app_xxx(Data data)  
