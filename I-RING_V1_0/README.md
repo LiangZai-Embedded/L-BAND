@@ -1,6 +1,12 @@
 # I-RING V1.0  
 ### 演示视频 https://www.bilibili.com/video/BV1Ca411h7yj?spm_id_from=333.999.0.0  
 
+
+2022-05-18  
+* 解决秒表LAP和SPL模式下时光倒流的问题  
+* 解决了IIR滤波算法的计算步骤的错误
+
+
 2022-04-13  
 * 使用库STM32Cube_FW_F0_V1.11.0 ->ST官网下载  
 * 删除进入app需 要shake的多余动作  
