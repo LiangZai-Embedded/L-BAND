@@ -1,0 +1,15 @@
+stm32g0xx_hal_cortex.c:132:6:HAL_NVIC_SetPriority	12	static
+stm32g0xx_hal_cortex.c:146:6:HAL_NVIC_EnableIRQ	0	static,ignoring_inline_asm
+stm32g0xx_hal_cortex.c:162:6:HAL_NVIC_DisableIRQ	0	static,ignoring_inline_asm
+stm32g0xx_hal_cortex.c:175:6:HAL_NVIC_SystemReset	0	static,ignoring_inline_asm
+stm32g0xx_hal_cortex.c:188:10:HAL_SYSTICK_Config	0	static
+stm32g0xx_hal_cortex.c:219:10:HAL_NVIC_GetPriority	0	static
+stm32g0xx_hal_cortex.c:232:6:HAL_NVIC_SetPendingIRQ	0	static
+stm32g0xx_hal_cortex.c:250:10:HAL_NVIC_GetPendingIRQ	0	static
+stm32g0xx_hal_cortex.c:266:6:HAL_NVIC_ClearPendingIRQ	0	static
+stm32g0xx_hal_cortex.c:283:6:HAL_SYSTICK_CLKSourceConfig	0	static
+stm32g0xx_hal_cortex.c:310:13:HAL_SYSTICK_Callback	0	static
+stm32g0xx_hal_cortex.c:301:6:HAL_SYSTICK_IRQHandler	8	static
+stm32g0xx_hal_cortex.c:329:6:HAL_MPU_Enable	0	static,ignoring_inline_asm
+stm32g0xx_hal_cortex.c:344:6:HAL_MPU_Disable	0	static,ignoring_inline_asm
+stm32g0xx_hal_cortex.c:360:6:HAL_MPU_ConfigRegion	8	static
