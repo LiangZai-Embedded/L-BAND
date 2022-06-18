@@ -70,7 +70,6 @@ void environment_task(void)
 {
 	bmp280_get_data(&data.temperature, &data.pressure, &data.asl);
 
-	data.asl += 1;
 }
 /**
   * @brief  excute battary task
