@@ -2,7 +2,7 @@
 #include "ui.h"
 
 
-#define APP_NBR 5
+#define APP_NBR 6
 #define PREFACE_SELECT_DELAY 25
 
 
@@ -15,8 +15,8 @@ typedef enum
 	APP_STW,
 	APP_SET,
 	APP_AHRS,
-	APP_GAME
-
+	APP_GAME,
+	APP_ENV
 }index_e;
 
 
@@ -35,7 +35,6 @@ typedef enum
     RUN_STA,         //app running status
 	STBY_STA,        //app standby status
 	EXIT_STA         //app exit    status
-
 }app_sta_e;
 
 void app_preface(Data data);
@@ -43,17 +42,11 @@ void app_rtc(Data data);
 void app_stw(Data data);
 void app_set(Data data);
 void app_ahrs(Data data);
-void app_info(Data data);
 void app_game(Data data);
+void app_env(Data data);
 
 
 typedef	void   (*excute_t) (Data data);
-
-
-
-
-
-
 
 
 typedef struct
@@ -73,7 +66,8 @@ Menu menu=
 		.app_excute[APP_STW] = app_stw,
     	.app_excute[APP_SET] = app_set,
 		.app_excute[APP_AHRS] = app_ahrs,
-		.app_excute[APP_GAME] = app_game
+		.app_excute[APP_GAME] = app_game,
+		.app_excute[APP_ENV] = app_env
 }; 
 
 
@@ -88,10 +82,10 @@ void app_rtc(Data data)
 	char buf[50] = {0};
 	static app_sta_e  app_sta = ENTER_STA;
     static uint8_t sec_unit_last;
-    uint8_t sec_unit,sec_ten;
+    uint8_t sec_unit = 0 , sec_ten = 0, min_unit = 0, min_ten = 0, hour_unit = 0, hour_ten = 0;
     static  FlagStatus sec_move_flag;
-    static  uint8_t sec_unit_move;
-    static  uint8_t sec_ten_move;
+    static  int8_t sec_unit_move;
+    static  int8_t sec_ten_move;
 
     //entrance animation
     static int8_t  animation_cnt0 = -60; //initialize the string position
@@ -104,6 +98,12 @@ void app_rtc(Data data)
 
 	static uint8_t seq = 0;               //appear sequence   seq=0/1 (the first/second string shows)
 
+    sec_ten = data.sec/10;
+    sec_unit = data.sec%10;
+    min_ten = data.min/10;
+    min_unit = data.min%10;
+    hour_ten = data.hour/10;
+    hour_unit = data.hour%10;
 
 	if(QUIT)
 	{
@@ -111,6 +111,8 @@ void app_rtc(Data data)
 	    animation_cnt0 = -60;
 	    animation_cnt1 = 150;
 	    animation_cnt2 = -10;
+    	sec_ten_move = 0;
+    	sec_unit_move = 0;
 
 		menu.mode = PREFACE;
 		app_sta = ENTER_STA;
@@ -158,7 +160,6 @@ void app_rtc(Data data)
 				}
 
 			}
-
 		}
 
 
@@ -166,44 +167,8 @@ void app_rtc(Data data)
        if(seq==3)
 		{
             seq = 0;
-        	animation_cnt0 = -60;
-        	animation_cnt1 = 150;
-        	animation_cnt2 = -10;
             app_sta = RUN_STA;
 		}
-
-
-
-
-
-
-	    u8g2_SetFont(&u8g2,u8g2_font_sirclivethebold_tr);
-	    u8g2_DrawStr(&u8g2,animation_cnt0-3,55,"L-BAND");
-
-	    //sequence 0
-        sprintf(buf,"%02d%02d",data.month,data.date);
-        u8g2_DrawStr(&u8g2,5-animation_cnt0,85,buf);
-
-        sprintf(buf,"%02d:%02d",data.hour,data.min);
-        u8g2_DrawStr(&u8g2,5-animation_cnt0,95,buf);
-
-		sprintf(buf,"20%02d",data.year);
-        u8g2_DrawStr(&u8g2,5-animation_cnt0+12,75,buf);
-
-
-        //sequence 1
-	    sprintf(buf,"%d",data.step);
-        u8g2_DrawStr(&u8g2,20,animation_cnt1,buf);
-
-        u8g2_SetFont(&u8g2,u8g2_font_open_iconic_human_2x_t);
-	    u8g2_DrawGlyph(&u8g2,0,animation_cnt1,68);
-
-		//sequence 2
-		u8g2_SetFont(&u8g2,u8g2_font_blipfest_07_tr);
-        sprintf(buf,"%.1fC                            %.1fV",data.temperature,data.batt);
-		u8g2_DrawStr(&u8g2,0,animation_cnt2,buf);
-
-
 	}
 
 
@@ -230,34 +195,6 @@ void app_rtc(Data data)
 	        HAL_NVIC_EnableIRQ(INTERRUPT_TIM_IRQN);
 
 		}
-
-		u8g2_SetFont(&u8g2,u8g2_font_blipfest_07_tr);
-
-
-		sprintf(buf,"%.1fC                            %.1fV",data.temperature,data.batt);
-		u8g2_DrawStr(&u8g2,0,9,buf);
-
-
-	    sprintf(buf,"%s",week_str[data.week-1]);
-        u8g2_DrawStr(&u8g2,45,85,buf);
-	  
-
-	  
-
-
-	    //calender
-	    u8g2_SetFont(&u8g2,u8g2_font_sirclivethebold_tr);
-	    u8g2_DrawStr(&u8g2,1,55,"L-BAND");
-
-		sprintf(buf,"20%02d",data.year);
-        u8g2_DrawStr(&u8g2,13,75,buf);
-
-        sprintf(buf,"%02d%02d",data.month,data.date);
-        u8g2_DrawStr(&u8g2,1,85,buf);
-
-
-        sec_ten = data.sec/10;
-        sec_unit = data.sec%10;
 
         if(sec_unit!=sec_unit_last)
         {
@@ -289,27 +226,87 @@ void app_rtc(Data data)
         }
 
 
-
-        sprintf(buf,"%02d:%02d:",data.hour,data.min);
-        u8g2_DrawStr(&u8g2,1,95,buf);
-
-
-        sprintf(buf,"%d",sec_ten);
-        u8g2_DrawStr(&u8g2,59-sec_ten_move,95,buf);
-
-
-        sprintf(buf,"%d",sec_unit);
-        u8g2_DrawStr(&u8g2,59-sec_unit_move,95,buf);
-
-     
-	    sprintf(buf,"%d",data.step);
-        u8g2_DrawStr(&u8g2,20,120,buf);
-
-        u8g2_SetFont(&u8g2,u8g2_font_open_iconic_human_2x_t);
-	    u8g2_DrawGlyph(&u8g2,0,120,68);
 	}
-	
 
+
+
+
+    u8g2_SetFont(&u8g2,u8g2_font_sirclivethebold_tr);
+    u8g2_DrawStr(&u8g2,animation_cnt0-3,55,"L-BAND");
+
+
+    sprintf(buf,"%02d%02d",data.month,data.date);
+    u8g2_DrawStr(&u8g2,5-animation_cnt0,85,buf);
+
+
+
+	sprintf(buf,"20%02d",data.year);
+    u8g2_DrawStr(&u8g2,5-animation_cnt0+10,75,buf);
+
+
+
+    sprintf(buf,"%d",sec_ten);
+    u8g2_DrawStr(&u8g2,64-sec_ten_move,95,buf);
+
+    sprintf(buf,"%d",sec_unit);
+    u8g2_DrawStr(&u8g2,64-sec_unit_move,95,buf);
+
+
+
+    sprintf(buf,"%d",min_ten);
+    u8g2_DrawStr(&u8g2,26-animation_cnt0,95,buf);
+
+    sprintf(buf,"%d",min_unit);
+    u8g2_DrawStr(&u8g2,36-animation_cnt0,95,buf);
+
+    sprintf(buf,"%d",hour_ten);
+    u8g2_DrawStr(&u8g2,4-animation_cnt0,95,buf);
+
+    sprintf(buf,"%d",hour_unit);
+    u8g2_DrawStr(&u8g2,14-animation_cnt0,95,buf);
+
+
+    if(hour_unit==1)
+    	u8g2_DrawStr(&u8g2, 22-animation_cnt0, 95, ":");
+
+
+    else
+    	u8g2_DrawStr(&u8g2, 24-animation_cnt0, 95, ":");
+
+
+
+    if(min_unit==1)
+    	u8g2_DrawStr(&u8g2, 44-animation_cnt0, 95, ":");
+
+
+    else
+        u8g2_DrawStr(&u8g2, 46-animation_cnt0, 95, ":");
+
+
+
+
+
+    sprintf(buf,"%d",data.step);
+    u8g2_DrawStr(&u8g2,20,animation_cnt1,buf);
+
+    u8g2_SetFont(&u8g2,u8g2_font_open_iconic_human_2x_t);
+    u8g2_DrawGlyph(&u8g2,0,animation_cnt1,68);
+
+
+    u8g2_SetFont(&u8g2,u8g2_font_blipfest_07_tr);
+    sprintf(buf,"%.1fC                            %.1fV",data.temperature,data.batt);
+    u8g2_DrawStr(&u8g2,0,animation_cnt2,buf);
+
+
+    sprintf(buf,"%s",week_str[data.week-1]);
+    u8g2_DrawStr(&u8g2,49-animation_cnt0,85,buf);
+
+
+
+
+
+
+	
 }
 
 /**
@@ -1023,6 +1020,8 @@ void app_ahrs(Data data)
 }
 
 
+
+
 /**
   * @brief  app 6,game
   * @param  data: ui data structure
@@ -1098,6 +1097,137 @@ void app_game(Data data)
 }
 
 
+
+/**
+  * @brief  app 5,shows environment data
+  * @param  data: ui data structure
+  * @retval none
+  * @date   2022-02-02
+  */
+
+void app_env(Data data)
+{
+	char buf[50] = {0};
+	static app_sta_e  app_sta = ENTER_STA;
+
+
+    //entrance animation
+    static int8_t  animation_cnt0 = -60; //initialize the string position
+	static int8_t  animation_cnt1 = 130;
+	static int8_t  animation_cnt2 = -10;
+
+	static uint8_t animation_delay0;     //determine the string movement speed
+	static uint8_t animation_delay1;
+	static uint8_t animation_delay2;
+
+	static uint8_t seq = 0;               //appear sequence   seq=0/1 (the first/second string shows)
+
+
+
+	if(QUIT)
+	{
+		seq = 0;
+	    animation_cnt0 = -60;
+	    animation_cnt1 = 150;
+	    animation_cnt2 = -10;
+
+
+		menu.mode = PREFACE;
+		app_sta = ENTER_STA;
+	}
+
+
+//	if(app_sta==ENTER_STA)
+//	{
+//		if(seq==0)
+//		{
+//			if(++animation_delay0==1)
+//			{
+//				animation_delay0 = 0;
+//				animation_cnt0 += 2;
+//				if(animation_cnt0==4)
+//				{
+//					seq = 1;
+//			    }
+//
+//			}
+//		}
+//
+//	    else if(seq==1)
+//		{
+//			if(++animation_delay1==2)
+//			{
+//				animation_delay1 = 0;
+//				if(--animation_cnt1==120)
+//				{
+//					seq = 2;
+//				}
+//
+//			}
+//
+//		}
+//
+//	    else if(seq==2)
+//		{
+//			if(++animation_delay2==2)
+//			{
+//				animation_delay2 = 0;
+//				if(++animation_cnt2==9)
+//				{
+//					seq = 3;
+//				}
+//
+//			}
+//		}
+//
+//
+//
+//       if(seq==3)
+//		{
+//            seq = 0;
+//            app_sta = RUN_STA;
+//		}
+//	}
+
+
+
+	if(app_sta==RUN_STA)
+	{
+
+
+
+	}
+
+
+
+
+    u8g2_SetFont(&u8g2,u8g2_font_sirclivethebold_tr);
+
+
+    sprintf(buf,"%.3fm",data.asl);
+    u8g2_DrawStr(&u8g2,0,30,buf);
+    sprintf(buf,"%.1fHpa  ",data.pressure);
+    u8g2_DrawStr(&u8g2,0,50,buf);
+
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
 /**
   * @brief  app preface (RUN_STAing)
   * @param  index: app index
@@ -1169,12 +1299,12 @@ void app_preface(Data data)
 
 
 	u8g2_SetFont(&u8g2,u8g2_font_open_iconic_app_6x_t);
-    u8g2_DrawGlyph(&u8g2,12+2*x,90,69);
-    u8g2_DrawGlyph(&u8g2,12+2*x+70,90,72);
-    u8g2_DrawGlyph(&u8g2,12+2*x+140,90,65);
-    u8g2_DrawGlyph(&u8g2,12+2*x+210,90,70);
-    u8g2_DrawGlyph(&u8g2,12+2*x+280,90,71);
-
+    u8g2_DrawGlyph(&u8g2,10+2*x,90,69);
+    u8g2_DrawGlyph(&u8g2,10+2*x+71,90,72);
+    u8g2_DrawGlyph(&u8g2,10+2*x+142,90,65);
+    u8g2_DrawGlyph(&u8g2,10+2*x+213,90,70);
+    u8g2_DrawGlyph(&u8g2,10+2*x+284,90,64);
+    u8g2_DrawGlyph(&u8g2,10+2*x+355,90,67);
 
 
 
@@ -1184,6 +1314,7 @@ void app_preface(Data data)
 	u8g2_DrawStr(&u8g2,18-2*x-150,120,"SET");
 	u8g2_DrawStr(&u8g2,18-2*x-225,120,"AHRS");
 	u8g2_DrawStr(&u8g2,18-2*x-300,120,"GAME");
+	u8g2_DrawStr(&u8g2,18-2*x-365,120,"ENU");
 }
 
 	

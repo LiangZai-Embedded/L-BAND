@@ -174,5 +174,6 @@ bool bmp280_read_float(BMP280_HandleTypedef *dev, float *temperature,
                        float *pressure);
 
 void BMP280_Init(void);
-void bmp280_get_data(float* temperature,float* pressure);
+void bmp280_get_data(float* temperature, float* pressure, float* asl);
+
 #endif  // __BMP280_H__

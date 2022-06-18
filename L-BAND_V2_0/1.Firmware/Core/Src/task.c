@@ -3,25 +3,23 @@
 
 Data data;
 uint32_t tick = 0;// increase 1 every 1 ms in TIM IT ISR
-uint8_t alarm[3]={16,22,30};
+uint8_t alarm[3]={20,28,20};
 Axis6_t axis6_filter;
 
 void ui_task(void);
-void pwr_save_task(void);
 void stepcount_task(void);
 void batt_task(void);
 void imu_task(void);
 void rtc_task(void);
 void environment_task(void);
 
-#define TASK_NUM 7
+#define TASK_NUM 6
 
 
 task_t task[TASK_NUM] =    
 { 
  {0,1,1,imu_task},                //8ms
  {0,1,1,ui_task},                 //8ms
- {0,12,12,pwr_save_task},         //96ms
  {0,5,5,stepcount_task},          //40ms
  {0,125,125,batt_task},           //1000ms
  {0,1,1,rtc_task},                //8ms
@@ -37,24 +35,25 @@ task_t task[TASK_NUM] =
 */
 void is_alarm_excute(RTC_TimeTypeDef s_time,uint8_t* alarm)
 {
-	static FlagStatus beep_flag = RESET;  //0��alm stop 1:alm apply
-	static uint16_t delay_cnt;
+	static FlagStatus beep_flag = RESET;
 
-  if(s_time.Hours ==alarm[0] && s_time.Minutes==alarm[1] && s_time.Seconds==alarm[2])
-	{
-		beep_flag = SET;
-  	    BEEP_ON();
-	}
+
+   if(s_time.Hours ==alarm[0] && s_time.Minutes==alarm[1] && s_time.Seconds==alarm[2])
+	   beep_flag = SET;
+   else
+	   beep_flag = RESET;
+
+
 
 	if(beep_flag==SET)
 	{
-	  if(++delay_cnt==50)
-		{
-			delay_cnt = 0;
-		    beep_flag = RESET;
-             BEEP_OFF();
-		}
+		BEEP_ON();
 	}
+	else
+	{
+		BEEP_OFF();
+	}
+
 
 }
 
@@ -69,7 +68,9 @@ void is_alarm_excute(RTC_TimeTypeDef s_time,uint8_t* alarm)
   */
 void environment_task(void)
 {
-	bmp280_get_data(&data.temperature,&data.pressure);
+	bmp280_get_data(&data.temperature, &data.pressure, &data.asl);
+
+	data.asl += 1;
 }
 /**
   * @brief  excute battary task
@@ -95,7 +96,6 @@ void imu_task(void)
   Euler3_t euler3;
   float buf_A[3],buf_M[3];
   Axis6_t axis6_raw;
-  float north;
 
   LSM303DLHC_AccReadXYZ(buf_A);
   LSM303DLHC_MagReadXYZ(buf_M);
@@ -129,7 +129,7 @@ void rtc_task(void)
 	HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
 	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
 
-	  //is_alarm_excute(sTime,alarm);
+	is_alarm_excute(sTime,alarm);
 	data.hour = sTime.Hours;
 	data.min  = sTime.Minutes;
     data.sec  = sTime.Seconds;
@@ -205,10 +205,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
   * @retval none
   * @date   2021-03-04
   */
-volatile uint32_t t;
 void task_scheduler(void)
 {
- __HAL_TIM_SET_COUNTER(&COUNT_TIM_HANDLE,0);
   for (uint8_t i = 0;i < TASK_NUM;i++)
   {
     if (task[i].runflag == SET)
@@ -218,10 +216,6 @@ void task_scheduler(void)
       task[i].runflag = RESET;
     }
   }
-  t = __HAL_TIM_GET_COUNTER(&COUNT_TIM_HANDLE);
-
-
-
 }
 
 

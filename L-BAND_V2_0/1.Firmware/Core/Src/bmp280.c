@@ -257,7 +257,6 @@ bool bmp280_read_fixed(BMP280_HandleTypedef *dev, int32_t *temperature, uint32_t
 	int32_t adc_temp;
 	uint8_t data[8];
 
-	// Only the BME280 supports reading the humidity.
 
 
 	// Need to read in one sequence to ensure they match.
@@ -285,8 +284,8 @@ bool bmp280_read_float(BMP280_HandleTypedef *dev, float *temperature, float *pre
 
 	if (bmp280_read_fixed(dev, &fixed_temperature, &fixed_pressure))
 	{
-		*temperature = (float) fixed_temperature / 100;
-		*pressure = (float) fixed_pressure / 256;
+		*temperature = (float) fixed_temperature / 100.0f;
+		*pressure = (float) fixed_pressure / 25600.0f;
 
 		return true;
 	}
@@ -308,10 +307,87 @@ void BMP280_Init(void)
 
 }
 
-void bmp280_get_data(float* temperature,float* pressure)
+
+
+#define FILTER_NUM	5
+#define FILTER_A	0.1f
+
+/*限幅平均滤波法*/
+static void presssureFilter(float* in,float* out)
 {
-   while (!bmp280_read_float(&bmp280, temperature, pressure))
+	static uint8_t i=0;
+	static float filter_buf[FILTER_NUM]={0.0f};
+	float filter_sum=0.0f;
+	uint8_t cnt=0;
+	float deta;
+
+	if(filter_buf[i]==0.0f)
+	{
+		filter_buf[i]=*in;
+		*out=*in;
+		if(++i>=FILTER_NUM)
+			i=0;
+	}
+	else
+	{
+		if(i)
+			deta=*in-filter_buf[i-1];
+		else
+			deta=*in-filter_buf[FILTER_NUM-1];
+
+		if(fabs(deta)<FILTER_A)
+		{
+			filter_buf[i]=*in;
+			if(++i>=FILTER_NUM)
+				i=0;
+		}
+		for(cnt=0;cnt<FILTER_NUM;cnt++)
+		{
+			filter_sum+=filter_buf[cnt];
+		}
+		*out=filter_sum /FILTER_NUM;
+	}
+}
+
+
+#define CONST_PF 0.1902630958	                                               //(1/5.25588f) Pressure factor
+#define FIX_TEMP 25				                                               // Fixed Temperature. ASL is a function of pressure and temperature, but as the temperature changes so much (blow a little towards the flie and watch it drop 5 degrees) it corrupts the ASL estimates.
+								                                               // TLDR: Adjusting for temp changes does more harm than good.
+/*
+ * Converts pressure to altitude above sea level (ASL) in meters
+*/
+static float bmp280PressureToAltitude(float* pressure/*, float* groundPressure, float* groundTemp*/)
+{
+    if (*pressure>0)
+    {
+        return((FastPow((1015.7f/ *pressure),CONST_PF)-1.0f)*(FIX_TEMP+273.15f))/0.0065f;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+
+
+
+
+void bmp280_get_data(float* temperature, float* pressure, float* asl)
+{
+   float pressure_raw;
+   while (!bmp280_read_float(&bmp280, temperature, &pressure_raw))
    {
 	   HAL_Delay(2000);
    }
+
+   presssureFilter(&pressure_raw,pressure);
+
+   *asl=bmp280PressureToAltitude(pressure);
+
+
 }
+
+
+
+
+

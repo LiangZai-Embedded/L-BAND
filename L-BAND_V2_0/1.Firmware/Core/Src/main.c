@@ -94,7 +94,6 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM2_Init();
   MX_TIM3_Init();
-  MX_TIM14_Init();
   /* USER CODE BEGIN 2 */
   HAL_NVIC_DisableIRQ(MEMS_IT_EXTI_IRQn);
   biquad_filter_init();
@@ -105,9 +104,8 @@ int main(void)
   u8g2Init(&u8g2);
 
 
-  HAL_TIM_Base_Start(&COUNT_TIM_HANDLE);
   HAL_TIM_Base_Start_IT(&INTERRUPT_TIM_HANDLE);
-//while(1);
+
 
   /* USER CODE END 2 */
 
@@ -118,6 +116,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
 	  task_scheduler();
   }
   /* USER CODE END 3 */

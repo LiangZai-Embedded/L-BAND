@@ -94,7 +94,7 @@ typedef struct
 
 	uint16_t step;
 
-
+    float asl;
 
 }Data;
 
@@ -107,6 +107,7 @@ typedef struct
 #include <stdlib.h>
 #include <time.h>
 #include <stdbool.h>
+#include <math.h>
 
 #include "task.h"
 
@@ -178,6 +179,9 @@ void Error_Handler(void);
 #define COUNT_TIM_HANDLE     htim14
 
 #define BEEP_OFF()		     HAL_TIM_PWM_Stop(&htim3,TIM_CHANNEL_1);
+
+
+
 #define BEEP_ON()		     HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_1);
 /* USER CODE END Private defines */
 
