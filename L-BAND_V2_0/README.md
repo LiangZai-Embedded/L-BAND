@@ -11,7 +11,7 @@
 
 1.主控: STM32G031F8P6 ARM Cortex-M0+ @64MHz  
 
-2.IMU: LSM303DLHC  
+2.加速度计/磁力计: LSM303DLHC  
 
 3.气压计/温度计:BMP280  
 
